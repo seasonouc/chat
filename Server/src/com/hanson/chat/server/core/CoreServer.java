@@ -20,15 +20,16 @@ import java.util.Set;
 /**
  * Created by hanson on 2017/1/5.
  */
-public class CoreServer implements Runnable{
+public class CoreServer implements Runnable {
 
     private int port;
 
-    private Map<String,SocketChannel> channelMap = new HashMap<>();
+    private Map<String, SocketChannel> channelMap = new HashMap<>();
 
     private ServerSocketChannel server = null;
 
     private Selector selector = null;
+
     public CoreServer(int port) {
         this.port = port;
 
@@ -44,38 +45,41 @@ public class CoreServer implements Runnable{
         System.out.println("server has started ....");
     }
 
-    public void run(){
+    public void run() {
         try {
             ServerSocketChannel serverSocketChannel = null;
             SocketChannel client = null;
             ServerSocket socket = null;
-            while(selector.select() > 0){
+            while (selector.select() > 0) {
                 Set<SelectionKey> keys = selector.selectedKeys();
-                for(SelectionKey key:keys){
-                   if(key.isReadable()){
-                       client = (SocketChannel) key.channel();
-                        if(!key.isValid()){
+                for (SelectionKey key : keys) {
+                    if (key.isReadable()) {
+                        client = (SocketChannel) key.channel();
+                        ByteBuffer buffer = MessageUtils.getBuffer();
+                        try {
+                            client.read(buffer);
+                        } catch (Exception e) {
                             System.out.println("a client is offline");
-                            String name = (String)key.attachment();
+                            String name = (String) key.attachment();
                             channelMap.remove(name);
                             continue;
                         }
-                        ByteBuffer buffer = MessageUtils.getBuffer();
-                        client.read(buffer);
                         buffer.flip();
                         Message message = MessageUtils.decodeMessage(buffer);
                         MsgHeader header = message.getHeader();
 
                         String name = header.getSender();
-                        switch (header.getType()){
+                        switch (header.getType()) {
                             case setName:
                                 String conMsg;
-                                if(channelMap.containsKey(header.getSender())){
+                                if (channelMap.containsKey(header.getSender())) {
                                     conMsg = "user name already exist...";
-                                }else{
-                                    conMsg = "connect server success...";
-                                    channelMap.put(name,client);
+                                } else {
+                                    conMsg = name+":connect server success...";
+                                    Message welcomeMsg = MessageUtils.getChatMessage(name,conMsg);
+                                    channelMap.put(name, client);
                                     key.attach(name);
+                                    sendMessage(welcomeMsg);
                                 }
                                 System.out.println(conMsg);
                                 break;
@@ -88,12 +92,12 @@ public class CoreServer implements Runnable{
                                 sendMessage(message);
                                 break;
                         }
-                    } else if(key.isAcceptable()){
+                    } else if (key.isAcceptable()) {
                         serverSocketChannel = (ServerSocketChannel) key.channel();
                         client = serverSocketChannel.accept();
                         client.configureBlocking(false);
                         client.register(selector, SelectionKey.OP_READ);
-                        System.out.println("a client connected...."+client.getRemoteAddress().toString());
+                        System.out.println("a client connected...." + client.getRemoteAddress().toString());
                     }
                 }
                 keys.clear();
@@ -107,9 +111,9 @@ public class CoreServer implements Runnable{
 //        String receiver = msg.getHeader().getReceiver();
         ByteBuffer buffer = MessageUtils.encodeMessage(msg);
 //        if("all".equals(receiver)){
-            for(SocketChannel channel:channelMap.values()){
-                channel.write(buffer);
-            }
+        for (SocketChannel channel : channelMap.values()) {
+            channel.write(buffer);
+        }
 //        }else{
 //            SocketChannel channel = channelMap.get(receiver);
 //            if(channel != null){
@@ -118,7 +122,7 @@ public class CoreServer implements Runnable{
 //        }
     }
 
-    public static void main(String args[]){
+    public static void main(String args[]) {
 
         CoreServer server = new CoreServer(8087);
         try {

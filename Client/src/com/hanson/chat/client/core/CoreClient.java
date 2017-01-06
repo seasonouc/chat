@@ -95,6 +95,7 @@ public class CoreClient implements IServer{
             while(inputStream.read(b) > 0){
                 ByteBuffer buffer = MessageUtils.getBuffer();
                 buffer.put(b);
+                buffer.flip();
                 Message message = MessageUtils.decodeMessage(buffer);
                 textArea.append(message.getBody().getStrMsg());
             }
