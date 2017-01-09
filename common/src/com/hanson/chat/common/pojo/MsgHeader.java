@@ -1,8 +1,7 @@
 package com.hanson.chat.common.pojo;
 
-import com.hanson.chat.common.e.ClientMsgType;
+import com.hanson.chat.common.e.MsgType;
 import com.hanson.chat.common.utils.Utils;
-import com.sun.corba.se.impl.logging.UtilSystemException;
 
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
@@ -14,7 +13,7 @@ public class MsgHeader {
     private String sender;
     private String receiver;
     private String ip;
-    private ClientMsgType type;
+    private MsgType type;
     public String getSender() {
         return sender;
     }
@@ -39,10 +38,10 @@ public class MsgHeader {
         this.ip = ip;
     }
 
-    public void setType(ClientMsgType type){
+    public void setType(MsgType type){
         this.type = type;
     }
-    public ClientMsgType getType(){
+    public MsgType getType(){
         return type;
     }
     public void writeTo(ByteBuffer buffer) throws UnsupportedEncodingException {
@@ -54,10 +53,10 @@ public class MsgHeader {
 
     public static MsgHeader readFrom(ByteBuffer buffer) throws UnsupportedEncodingException {
         MsgHeader header  = new MsgHeader();
+        header.setType(MsgType.values()[buffer.getInt()]);
         header.setSender(Utils.readUTF(buffer));
         header.setReceiver(Utils.readUTF(buffer));
         header.setIp(Utils.readUTF(buffer));
-        header.setType(ClientMsgType.values()[buffer.getInt()]);
         return header;
     }
 }

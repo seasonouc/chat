@@ -1,6 +1,6 @@
 package com.hanson.chat.server.core;
 
-import com.hanson.chat.common.e.ClientMsgType;
+import com.hanson.chat.common.e.MsgType;
 import com.hanson.chat.common.pojo.Message;
 import com.hanson.chat.common.utils.MessageUtils;
 
@@ -31,7 +31,7 @@ public class MessageResolver implements Runnable {
                 Message msg = queue.take();
                 ByteBuffer buffer = MessageUtils.getBuffer();
                 msg.writeTo(buffer);
-                ClientMsgType msgType = msg.getHeader().getType();
+                MsgType msgType = msg.getHeader().getType();
                 buffer.flip();
                 switch (msgType) {
                     case toAll:

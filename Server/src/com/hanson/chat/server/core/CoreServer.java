@@ -1,21 +1,16 @@
 package com.hanson.chat.server.core;
 
 
-import com.hanson.chat.common.e.ClientMsgType;
-import com.hanson.chat.common.e.ServerMsgType;
 import com.hanson.chat.common.pojo.Message;
 import com.hanson.chat.common.pojo.MsgHeader;
 import com.hanson.chat.common.utils.MessageUtils;
-import com.hanson.chat.common.utils.Utils;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.nio.ByteBuffer;
 import java.nio.channels.*;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Created by hanson on 2017/1/5.
@@ -30,9 +25,11 @@ public class CoreServer implements Runnable {
 
     private Selector selector = null;
 
+    private Set<String> userList = null;
+
     public CoreServer(int port) {
         this.port = port;
-
+        userList = new HashSet<>();
 
     }
 
@@ -59,9 +56,13 @@ public class CoreServer implements Runnable {
                         try {
                             client.read(buffer);
                         } catch (Exception e) {
-                            System.out.println("a client is offline");
                             String name = (String) key.attachment();
+                            System.out.println(name+" is offline");
                             channelMap.remove(name);
+                            userList.remove(name);
+                            key.cancel();
+                            Message message = MessageUtils.getOfflineMessage(name);
+                            sendMessage(message);
                             continue;
                         }
                         buffer.flip();
@@ -72,14 +73,19 @@ public class CoreServer implements Runnable {
                         switch (header.getType()) {
                             case setName:
                                 String conMsg;
-                                if (channelMap.containsKey(header.getSender())) {
+                                if (channelMap.containsKey(name)) {
                                     conMsg = "user name already exist...";
+                                    message = MessageUtils.getDoubleNameMessage(name);
+                                    buffer.clear();
+                                    message.writeTo(buffer);
+                                    client.write(buffer);
                                 } else {
                                     conMsg = name+":connect server success...";
-                                    Message welcomeMsg = MessageUtils.getChatMessage(name,conMsg);
                                     channelMap.put(name, client);
                                     key.attach(name);
-                                    sendMessage(welcomeMsg);
+                                    userList.add(name);
+                                    message = MessageUtils.getOnlineMessage(name);
+                                    sendMessage(message);
                                 }
                                 System.out.println(conMsg);
                                 break;
@@ -90,6 +96,9 @@ public class CoreServer implements Runnable {
 //                                client.read(buffer);
 //                                Message msg = Message.readFrom(buffer);
                                 sendMessage(message);
+                                break;
+                            case requestUserList:
+
                                 break;
                         }
                     } else if (key.isAcceptable()) {
@@ -112,6 +121,7 @@ public class CoreServer implements Runnable {
         ByteBuffer buffer = MessageUtils.encodeMessage(msg);
 //        if("all".equals(receiver)){
         for (SocketChannel channel : channelMap.values()) {
+            buffer.flip();
             channel.write(buffer);
         }
 //        }else{
