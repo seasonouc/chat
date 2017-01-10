@@ -3,7 +3,6 @@ package com.hanson.chat.common.pojo;
 import com.hanson.chat.common.utils.Utils;
 
 import java.io.UnsupportedEncodingException;
-import java.nio.Buffer;
 import java.nio.ByteBuffer;
 
 /**
@@ -19,6 +18,7 @@ public class MsgBody {
     }
 
     public String strMsg;
+
 
     public void writeTo(ByteBuffer buffer) throws UnsupportedEncodingException {
         Utils.writeUTF(buffer,strMsg);

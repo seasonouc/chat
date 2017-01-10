@@ -143,7 +143,9 @@ public class CoreServer implements Runnable {
         CoreServer server = new CoreServer(8087);
         try {
             server.init();
-            server.run();
+            while(true) {
+                server.run();
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
