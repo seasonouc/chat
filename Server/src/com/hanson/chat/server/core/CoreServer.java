@@ -81,11 +81,17 @@ public class CoreServer implements Runnable {
                                     client.write(buffer);
                                 } else {
                                     conMsg = name+":connect server success...";
-                                    channelMap.put(name, client);
                                     key.attach(name);
                                     userList.add(name);
                                     message = MessageUtils.getOnlineMessage(name);
                                     sendMessage(message);
+                                    channelMap.put(name, client);
+
+                                    message = MessageUtils.getRequestUserListMessag(name,userList);
+                                    buffer.clear();
+                                    message.writeTo(buffer);
+                                    buffer.clear();
+                                    client.write(buffer);
                                 }
                                 System.out.println(conMsg);
                                 break;

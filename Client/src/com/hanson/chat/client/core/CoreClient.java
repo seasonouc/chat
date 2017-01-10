@@ -125,21 +125,24 @@ public class CoreClient implements IServer{
                     case online:
                         resolve.addUser(message.getHeader().getSender());
                         message.getBody().setStrMsg("online");
+                        resolve.addMessage(message);
                         break;
                     case offline:
                         message.getBody().setStrMsg("offline");
                         resolve.deleteUser(message.getHeader().getSender());
+                        resolve.addMessage(message);
                         break;
                     case doubleName:
                         message.getBody().setStrMsg("user name already use");
+                        resolve.addMessage(message);
                         break;
                     case requestUserList:
-                        String []userList = message.getBody().getStrMsg().split("|");
+                        String []userList = message.getBody().getStrMsg().split("\\|");
                         for(String user:userList){
                             resolve.addUser(user);
                         }
+                        break;
                 }
-                resolve.addMessage(message);
             }
         } catch (IOException e) {
             e.printStackTrace();

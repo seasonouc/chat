@@ -8,6 +8,7 @@ import com.hanson.chat.common.pojo.MsgHeader;
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Created by hanson on 2017/1/5.
@@ -106,7 +107,7 @@ public class MessageUtils {
         message.setHeader(header);
         return message;
     }
-    public static Message getRequestUserListMessag(String name, HashSet<String> userList){
+    public static Message getRequestUserListMessag(String name, Set<String> userList){
         MsgHeader header = new MsgHeader();
         header.setType(MsgType.requestUserList);
         header.setReceiver("server");
